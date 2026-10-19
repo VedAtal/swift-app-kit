@@ -18,6 +18,8 @@ if [[ -n "${APP_ROOT:-}" ]]; then
   ROOT="$(cd "$APP_ROOT" && pwd)"
   CONFIG="$ROOT/app.env"
   cd "$ROOT"
+  # Or the app launched below inherits it, and its "Update" would run in this folder, which may be gone.
+  unset APP_ROOT
 else
   ROOT=""
   CONFIG="$SCRIPT_DIR/app.env"
