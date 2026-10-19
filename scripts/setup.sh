@@ -25,7 +25,7 @@ fi
 [[ -f "$CONFIG" ]] || { echo "error: $CONFIG not found." >&2; exit 1; }
 
 # app.env sets these. See templates/app.env.
-APP_NAME="" BUNDLE_ID="" SYMBOL="" ICON_TOP="" ICON_BOTTOM="" INSTALL_NOTES=""
+APP_NAME="" BUNDLE_ID="" SYMBOL="" ICON_TOP="" ICON_BOTTOM="" INSTALL_NOTES="" GLYPH=""
 # shellcheck source=/dev/null
 source "$CONFIG"
 for var in APP_NAME BUNDLE_ID SYMBOL ICON_TOP ICON_BOTTOM; do
@@ -125,12 +125,13 @@ ensure_signing_identity() {
 # --- Build ----------------------------------------------------------------------------------
 
 make_icon() {
-  local icns="$BUILD_DIR/AppIcon.icns" iconset="$BUILD_DIR/AppIcon.iconset"
-  # Reuse the last icon unless app.env or the script that draws it has changed since.
-  [[ "$icns" -nt "$SCRIPT_DIR/make-icon.swift" && "$icns" -nt "$CONFIG" ]] && return 0
+  local icns="$BUILD_DIR/AppIcon.icns" iconset="$BUILD_DIR/AppIcon.iconset" glyph="${GLYPH:+$ROOT/$GLYPH}"
+  # Reuse the last icon unless app.env, the glyph or the script that draws it has changed since.
+  [[ "$icns" -nt "$SCRIPT_DIR/make-icon.swift" && "$icns" -nt "$CONFIG" && ( -z "$glyph" || "$icns" -nt "$glyph" ) ]] \
+    && return 0
   rm -rf "$iconset"
   mkdir -p "$iconset"
-  if swift "$SCRIPT_DIR/make-icon.swift" "$iconset" "$SYMBOL" "$ICON_TOP" "$ICON_BOTTOM" \
+  if swift "$SCRIPT_DIR/make-icon.swift" "$iconset" "${glyph:-$SYMBOL}" "$ICON_TOP" "$ICON_BOTTOM" \
      && iconutil -c icns "$iconset" -o "$icns"; then
     rm -rf "$iconset"
   else
@@ -214,6 +215,7 @@ build_app() {
   bin="$(swift build -c release --show-bin-path)/$APP_NAME"
 
   step "Assembling $APP_NAME.app…"
+  [[ -z "$GLYPH" || -f "$ROOT/$GLYPH" ]] || die "app.env sets GLYPH to $GLYPH, but that file isn't in $ROOT."
   mkdir -p "$BUILD_DIR"
   make_icon
   rm -rf "$APP"
@@ -226,6 +228,9 @@ build_app() {
   cp "$CONFIG" "$APP/Contents/Resources/app.env"
   if [[ -f "$BUILD_DIR/AppIcon.icns" ]]; then
     cp "$BUILD_DIR/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+  fi
+  if [[ -n "$GLYPH" ]]; then
+    cp "$ROOT/$GLYPH" "$APP/Contents/Resources/Glyph.png"
   fi
 
   step "Signing…"

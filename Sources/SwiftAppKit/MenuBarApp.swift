@@ -72,7 +72,13 @@ open class MenuBarAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        let image = NSImage(systemSymbolName: AppInfo.symbol, accessibilityDescription: AppInfo.name)
+        // The app's own glyph (GLYPH in app.env), else its SF Symbol. As a template image, it follows
+        // the menu bar's light or dark appearance.
+        let image = Bundle.main.image(forResource: "Glyph").map { glyph in
+            glyph.size = NSSize(width: 16 * glyph.size.width / glyph.size.height, height: 16)
+            glyph.accessibilityDescription = AppInfo.name
+            return glyph
+        } ?? NSImage(systemSymbolName: AppInfo.symbol, accessibilityDescription: AppInfo.name)
         image?.isTemplate = true
         statusItem.button?.image = image
         let menu = NSMenu()

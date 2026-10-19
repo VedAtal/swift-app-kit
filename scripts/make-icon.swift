@@ -1,7 +1,7 @@
 // Renders an app icon into an .iconset folder (setup.sh turns it into AppIcon.icns): a white
-// SF Symbol on a rounded square with a top-to-bottom gradient. Every app uses this, so the icons
-// look like a set.
-// Usage: swift make-icon.swift <output.iconset> <symbol> "<top r g b>" "<bottom r g b>"
+// SF Symbol, or the app's own glyph image, on a rounded square with a top-to-bottom gradient.
+// Every app uses this, so the icons look like a set.
+// Usage: swift make-icon.swift <output.iconset> <symbol or glyph.png> "<top r g b>" "<bottom r g b>"
 import AppKit
 
 let arguments = CommandLine.arguments
@@ -11,6 +11,7 @@ guard arguments.count == 5 else {
 }
 let outputDir = URL(fileURLWithPath: arguments[1], isDirectory: true)
 let symbolName = arguments[2]
+let glyph = FileManager.default.fileExists(atPath: symbolName) ? whitened(NSImage(contentsOfFile: symbolName)) : nil
 
 /// "0.36 0.52 1.0" → a color.
 func color(_ rgb: String) -> NSColor {
@@ -20,6 +21,26 @@ func color(_ rgb: String) -> NSColor {
         exit(1)
     }
     return NSColor(calibratedRed: parts[0], green: parts[1], blue: parts[2], alpha: 1)
+}
+
+/// The glyph's shape in white: like a template image, only its alpha counts.
+func whitened(_ image: NSImage?) -> NSImage? {
+    guard let image, image.size.height > 0 else { return nil }
+    let rep = NSBitmapImageRep(
+        bitmapDataPlanes: nil, pixelsWide: 1024, pixelsHigh: Int(1024 * image.size.height / image.size.width),
+        bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+        colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+    )!
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+    let rect = NSRect(x: 0, y: 0, width: rep.pixelsWide, height: rep.pixelsHigh)
+    image.draw(in: rect)
+    NSColor.white.set()
+    rect.fill(using: .sourceAtop)
+    NSGraphicsContext.restoreGraphicsState()
+    let white = NSImage(size: rect.size)
+    white.addRepresentation(rep)
+    return white
 }
 
 let top = color(arguments[3])
@@ -48,7 +69,11 @@ func render(pixels: Int) -> Data {
 
     let config = NSImage.SymbolConfiguration(pointSize: body.width * 0.5, weight: .medium)
         .applying(NSImage.SymbolConfiguration(paletteColors: [.white]))
-    if let symbol = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)?
+    if let glyph {
+        let scale = body.width * 0.56 / max(glyph.size.width, glyph.size.height)
+        let w = glyph.size.width * scale, h = glyph.size.height * scale
+        glyph.draw(in: NSRect(x: (size - w) / 2, y: (size - h) / 2, width: w, height: h))
+    } else if let symbol = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)?
         .withSymbolConfiguration(config) {
         let s = symbol.size
         symbol.draw(in: NSRect(x: (size - s.width) / 2, y: (size - s.height) / 2, width: s.width, height: s.height))
