@@ -90,7 +90,7 @@ menu bar's light or dark appearance). Only its alpha is used, so one image cover
 Each app's README uses these sections, in this order:
 
 1. **Title and one or two sentences** saying what it does.
-2. **Setup**: the one command (`git clone https://github.com/VedAtal/<app>.git && <app>/setup.sh`),
+2. **Setup**: the one command (`curl -fsSL …/swift-app-kit/main/scripts/install.sh | bash -s <app>`),
    what it does, the options table, and the one manual step if there is one (usually Accessibility).
 3. **Updating**: the menu item, `./setup.sh`, and `./setup.sh --local`.
 4. **Using it**: a table of what to press and what it does, then the menu.
