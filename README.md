@@ -12,7 +12,7 @@ The rules the apps follow are in [STANDARDS.md](STANDARDS.md).
 |---|---|
 | `scripts/install.sh` | The one-line install from GitHub (`curl … \| bash -s <app>`): clones the app into a temporary folder and runs its `setup.sh` |
 | `scripts/setup.sh` | The whole install: build, app icon, Info.plist, code signing, install, launch, update from GitHub, uninstall |
-| `scripts/make-icon.swift` | The app icon: a white SF Symbol (or the app's `GLYPH`) on a gradient rounded square |
+| `scripts/make-icon.swift` | The app icon: a white SF Symbol (or the app's `GLYPH`) on a black rounded square |
 | `MenuBarApp`, `MenuBarAppDelegate` | Menu-bar-only startup, the standard menu, Settings window, launch at login on first run, the update flow |
 | `SettingsForm`, `ShortcutField` | The standard Settings layout (the app's sections, then General) and a shortcut recorder |
 | `HotKeyCenter`, `Shortcut` | Any number of global shortcuts, plus pausing them and reporting ones another app already has |

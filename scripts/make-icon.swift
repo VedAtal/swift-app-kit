@@ -1,27 +1,17 @@
 // Renders an app icon into an .iconset folder (setup.sh turns it into AppIcon.icns): a white
-// SF Symbol, or the app's own glyph image, on a rounded square with a top-to-bottom gradient.
-// Every app uses this, so the icons look like a set.
-// Usage: swift make-icon.swift <output.iconset> <symbol or glyph.png> "<top r g b>" "<bottom r g b>"
+// SF Symbol, or the app's own glyph image, on a black rounded square. Every app uses this, so the
+// icons look like a set.
+// Usage: swift make-icon.swift <output.iconset> <symbol or glyph.png>
 import AppKit
 
 let arguments = CommandLine.arguments
-guard arguments.count == 5 else {
-    FileHandle.standardError.write(Data("usage: make-icon.swift <output.iconset> <symbol> \"<top r g b>\" \"<bottom r g b>\"\n".utf8))
+guard arguments.count == 3 else {
+    FileHandle.standardError.write(Data("usage: make-icon.swift <output.iconset> <symbol or glyph.png>\n".utf8))
     exit(1)
 }
 let outputDir = URL(fileURLWithPath: arguments[1], isDirectory: true)
 let symbolName = arguments[2]
 let glyph = FileManager.default.fileExists(atPath: symbolName) ? whitened(NSImage(contentsOfFile: symbolName)) : nil
-
-/// "0.36 0.52 1.0" → a color.
-func color(_ rgb: String) -> NSColor {
-    let parts = rgb.split(separator: " ").compactMap { Double($0) }
-    guard parts.count == 3 else {
-        FileHandle.standardError.write(Data("make-icon: expected \"r g b\" from 0 to 1, got \"\(rgb)\"\n".utf8))
-        exit(1)
-    }
-    return NSColor(calibratedRed: parts[0], green: parts[1], blue: parts[2], alpha: 1)
-}
 
 /// The glyph's shape in white: like a template image, only its alpha counts.
 func whitened(_ image: NSImage?) -> NSImage? {
@@ -43,9 +33,6 @@ func whitened(_ image: NSImage?) -> NSImage? {
     return white
 }
 
-let top = color(arguments[3])
-let bottom = color(arguments[4])
-
 let sizes: [(name: String, pixels: Int)] = [
     ("16x16", 16), ("16x16@2x", 32), ("32x32", 32), ("32x32@2x", 64),
     ("128x128", 128), ("128x128@2x", 256), ("256x256", 256), ("256x256@2x", 512),
@@ -65,7 +52,8 @@ func render(pixels: Int) -> Data {
     let size = CGFloat(pixels)
     let body = NSRect(x: 0, y: 0, width: size, height: size).insetBy(dx: size * 0.1, dy: size * 0.1)
     let shape = NSBezierPath(roundedRect: body, xRadius: body.width * 0.225, yRadius: body.width * 0.225)
-    NSGradient(starting: top, ending: bottom)!.draw(in: shape, angle: -90)
+    NSColor.black.setFill()
+    shape.fill()
 
     let config = NSImage.SymbolConfiguration(pointSize: body.width * 0.5, weight: .medium)
         .applying(NSImage.SymbolConfiguration(paletteColors: [.white]))

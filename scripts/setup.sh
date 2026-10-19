@@ -25,10 +25,10 @@ fi
 [[ -f "$CONFIG" ]] || { echo "error: $CONFIG not found." >&2; exit 1; }
 
 # app.env sets these. See templates/app.env.
-APP_NAME="" BUNDLE_ID="" SYMBOL="" ICON_TOP="" ICON_BOTTOM="" INSTALL_NOTES="" GLYPH=""
+APP_NAME="" BUNDLE_ID="" SYMBOL="" INSTALL_NOTES="" GLYPH=""
 # shellcheck source=/dev/null
 source "$CONFIG"
-for var in APP_NAME BUNDLE_ID SYMBOL ICON_TOP ICON_BOTTOM; do
+for var in APP_NAME BUNDLE_ID SYMBOL; do
   [[ -n "${!var}" ]] || { echo "error: $CONFIG doesn't set $var." >&2; exit 1; }
 done
 LOWER_NAME=$(printf '%s' "$APP_NAME" | tr '[:upper:]' '[:lower:]')
@@ -131,7 +131,7 @@ make_icon() {
     && return 0
   rm -rf "$iconset"
   mkdir -p "$iconset"
-  if swift "$SCRIPT_DIR/make-icon.swift" "$iconset" "${glyph:-$SYMBOL}" "$ICON_TOP" "$ICON_BOTTOM" \
+  if swift "$SCRIPT_DIR/make-icon.swift" "$iconset" "${glyph:-$SYMBOL}" \
      && iconutil -c icns "$iconset" -o "$icns"; then
     rm -rf "$iconset"
   else
