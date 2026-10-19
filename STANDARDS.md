@@ -8,7 +8,7 @@ same way. Where the kit can enforce a rule, it does, and this file says so.
 - Each app has its own **public** GitHub repo. It has to be public because updates download over
   HTTPS without credentials.
 - Layout: `Package.swift`, `Package.resolved` (committed), `app.env`, `setup.sh`, `README.md`,
-  `.gitignore`, `Sources/<App>/`. App-specific scripts go in `scripts/`.
+  `LICENSE` (MIT), `.gitignore`, `Sources/<App>/`. App-specific scripts go in `scripts/`.
 - `setup.sh` is an unchanged copy of `templates/setup.sh`. Anything app-specific goes in `app.env`.
 - `BUNDLE_ID` is `local.<lowercase name>`. Never change it after the app is installed: macOS
   keys settings and permissions to it.
@@ -98,3 +98,4 @@ Each app's README uses these sections, in this order:
 8. **How it works**: a file map of `Sources/<App>/` and the details that aren't obvious.
    Link to swift-app-kit for the shared parts instead of explaining them again.
 9. **Development**.
+10. **License**: MIT, pointing to `LICENSE`.

@@ -108,3 +108,7 @@ the signature, and an ad-hoc signature changes on every build, so without this y
 grant access again after each update.
 
 **Build tools.** Everything builds with only the Command Line Tools. Full Xcode isn't needed.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
