@@ -71,6 +71,7 @@ menu bar's light or dark appearance). Only its alpha is used, so one image cover
 | Recall | `list.clipboard` |
 | Snap | `rectangle.split.2x2` |
 | Cairn | its own glyph (stacked stones) |
+| Tether | `cable.connector` |
 
 ## Code
 
