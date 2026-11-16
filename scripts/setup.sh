@@ -264,6 +264,20 @@ repository_url() {
   https_url "$origin"
 }
 
+# GitHub asks git for credentials only for a private repo. Answer with the token of the gh account
+# named after the repo's owner, else gh's active account (someone the repo is shared with): git's own
+# helper may be signed in as someone else. Apps launched from Finder don't have Homebrew on their
+# PATH, so look there too.
+use_github_credentials() {
+  local owner="$1" gh
+  gh=$(command -v gh || ls /opt/homebrew/bin/gh /usr/local/bin/gh 2>/dev/null | head -n 1) || true
+  [[ -n "$gh" ]] || return 0
+  # Scoped to github.com, so no other server is ever handed the token.
+  export GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=credential.https://github.com.helper GIT_CONFIG_VALUE_0="" \
+    GIT_CONFIG_KEY_1=credential.https://github.com.helper \
+    GIT_CONFIG_VALUE_1="!f() { [ \"\$1\" = get ] && echo username=x-access-token && echo \"password=\$('$gh' auth token --user '$owner' 2>/dev/null || '$gh' auth token)\"; }; f"
+}
+
 # Downloads GitHub's latest commit into a private checkout and runs that checkout's
 # `setup.sh --local`, so the build always uses the newest build steps too. Does nothing if the
 # installed app was already built from that commit. ("Update <App>" relies on this: when the
@@ -273,6 +287,7 @@ install_from_github() {
   repo=$(repository_url) \
     || die "This folder has no GitHub remote to install from. Use ./setup.sh --local to install it as it is."
   export GIT_TERMINAL_PROMPT=0  # never wait on a password prompt nobody can see
+  [[ ! "$repo" =~ ^https://github\.com/([^/]+)/ ]] || use_github_credentials "${BASH_REMATCH[1]}"
 
   step "Checking ${repo}…"
   latest=$(git ls-remote "$repo" HEAD 2>/dev/null | cut -f1)

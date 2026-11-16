@@ -8,6 +8,17 @@
 # latest commit. After that, the app's "Update <App>" menu item keeps it current.
 set -euo pipefail
 
+# A copy of setup.sh's, since this script runs before anything else is downloaded.
+use_github_credentials() {
+  local owner="$1" gh
+  gh=$(command -v gh || ls /opt/homebrew/bin/gh /usr/local/bin/gh 2>/dev/null | head -n 1) || true
+  [[ -n "$gh" ]] || return 0
+  # Scoped to github.com, so no other server is ever handed the token.
+  export GIT_CONFIG_COUNT=2 GIT_CONFIG_KEY_0=credential.https://github.com.helper GIT_CONFIG_VALUE_0="" \
+    GIT_CONFIG_KEY_1=credential.https://github.com.helper \
+    GIT_CONFIG_VALUE_1="!f() { [ \"\$1\" = get ] && echo username=x-access-token && echo \"password=\$('$gh' auth token --user '$owner' 2>/dev/null || '$gh' auth token)\"; }; f"
+}
+
 # In a function, so `curl | bash` runs nothing until the whole script has downloaded.
 main() {
   local repo="${1:-}"
@@ -21,6 +32,7 @@ main() {
     exit 1
   fi
 
+  use_github_credentials "${repo%%/*}"
   checkout=$(mktemp -d)  # global: the EXIT trap runs after main returns
   trap 'rm -rf "$checkout"' EXIT
   git clone --quiet --depth 1 "https://github.com/$repo.git" "$checkout" </dev/null \

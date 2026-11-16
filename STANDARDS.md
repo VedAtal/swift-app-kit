@@ -5,8 +5,11 @@ same way. Where the kit can enforce a rule, it does, and this file says so.
 
 ## Repo
 
-- Each app has its own **public** GitHub repo. It has to be public because updates download over
-  HTTPS without credentials.
+- Each app has its own GitHub repo, public unless its contents can't be shared. Updates download
+  over HTTPS. A private repo installs and updates wherever the GitHub CLI is signed in
+  (`gh auth login`) to an account that can read it: when GitHub asks for credentials, `setup.sh` and
+  `install.sh` answer with the token of gh's account named after the repo's owner, else its active
+  account, whichever account git itself would use.
 - Layout: `Package.swift`, `Package.resolved` (committed), `app.env`, `setup.sh`, `README.md`,
   `LICENSE` (MIT), `.gitignore`, `Sources/<App>/`. App-specific scripts go in `scripts/`.
 - `setup.sh` is an unchanged copy of `templates/setup.sh`. Anything app-specific goes in `app.env`.
@@ -30,13 +33,13 @@ Version 59ba24f · built 2 minutes ago
 Quit <App>               ⌘Q
 ```
 
-- The menu bar icon is the app's `SYMBOL` (or `GLYPH`), drawn as a template image so it matches the
-  menu bar.
-- Menu items that have a shortcut show it on the right (`menu.addItem(_:shortcut:action:)`).
 - An app with more controls than a menu holds (sliders, a section per device) gives its icon a
   **panel** instead (`makePanelView()`): `PanelSection`s above a footer the kit adds, with the app's
   name, ⚙ for Settings, and ⋯ for the menu. Right-clicking the icon also shows the menu. The app's
   controls go in the panel, so its menu has only the standard items.
+- The menu bar icon is the app's `SYMBOL` (or `GLYPH`), drawn as a template image so it matches the
+  menu bar.
+- Menu items that have a shortcut show it on the right (`menu.addItem(_:shortcut:action:)`).
 - Status lines (e.g. "Open history: ⇧⌘V") are disabled items in the app's section.
 - Use title case for commands ("Clear History", "Pause Snap") and "…" for items that open a
   window or ask something more.
