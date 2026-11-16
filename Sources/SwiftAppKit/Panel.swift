@@ -37,7 +37,9 @@ final class Panel {
         let controller = NSHostingController(rootView: content())
         controller.sizingOptions = [.preferredContentSize]
         popover.contentViewController = controller
-        NSApp.activate() // or a click outside doesn't close it
+        // Not activate(): macOS may turn that request down, and an inactive panel spends the first
+        // click on waking up. Being active is also what lets a click outside close it.
+        NSApp.activate(ignoringOtherApps: true)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
     }
