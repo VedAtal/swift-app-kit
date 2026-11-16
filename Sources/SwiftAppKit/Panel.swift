@@ -21,10 +21,46 @@ public struct PanelSection<Content: View>: View {
     }
 }
 
+extension View {
+    /// The panel's tile look: faint at rest, tinted and outlined when highlighted (chosen, on,
+    /// pressed).
+    public func panelTile(highlighted: Bool = false, cornerRadius: CGFloat = 10) -> some View {
+        background(RoundedRectangle(cornerRadius: cornerRadius).fill(highlighted ? Color.accentColor.opacity(0.16) : Color.primary.opacity(0.05)))
+            .overlay(RoundedRectangle(cornerRadius: cornerRadius).strokeBorder(highlighted ? Color.accentColor.opacity(0.55) : .clear))
+    }
+}
+
+/// A panel button drawn as a tile, highlighted while pressed: `.buttonStyle(.panelTile)`.
+public struct PanelTileButtonStyle: ButtonStyle {
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        Tile(configuration: configuration)
+    }
+
+    private struct Tile: View {
+        let configuration: Configuration
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .opacity(isEnabled ? 1 : 0.4)
+                .contentShape(Rectangle())
+                .panelTile(highlighted: configuration.isPressed)
+        }
+    }
+}
+
+extension ButtonStyle where Self == PanelTileButtonStyle {
+    public static var panelTile: PanelTileButtonStyle { PanelTileButtonStyle() }
+}
+
 /// The popover under the menu bar icon: the app's content above the standard footer.
 @MainActor
 final class Panel {
     private let popover = NSPopover()
+    /// The app that was in front when the panel opened, which opening it took focus from.
+    private(set) var previousApp: NSRunningApplication?
 
     init() {
         popover.behavior = .transient
@@ -37,6 +73,7 @@ final class Panel {
         let controller = NSHostingController(rootView: content())
         controller.sizingOptions = [.preferredContentSize]
         popover.contentViewController = controller
+        previousApp = NSWorkspace.shared.frontmostApplication
         // Not activate(): macOS may turn that request down, and an inactive panel spends the first
         // click on waking up. Being active is also what lets a click outside close it.
         NSApp.activate(ignoringOtherApps: true)

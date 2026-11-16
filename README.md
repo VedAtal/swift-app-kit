@@ -15,7 +15,7 @@ The rules the apps follow are in [STANDARDS.md](STANDARDS.md).
 | `RESOURCES` in `app.env` | A folder of the app's own files (images, sounds) copied into `Contents/Resources` |
 | `scripts/make-icon.swift` | The app icon: a white SF Symbol (or the app's `GLYPH`) on a black rounded square |
 | `MenuBarApp`, `MenuBarAppDelegate` | Menu-bar-only startup, the standard menu, Settings window, launch at login on first run, the update flow |
-| `makePanelView()`, `PanelSection` | A panel under the icon instead of the menu, for apps with sliders and switches, with a standard footer |
+| `makePanelView()`, `PanelSection` | A panel under the icon instead of the menu, with a standard footer; the tile look (`panelTile()`, `.buttonStyle(.panelTile)`); and `closePanelReturningFocus()` for controls that act on the app you were in |
 | `SettingsForm`, `ShortcutField` | The standard Settings layout (the app's sections, then General) and a shortcut recorder |
 | `HotKeyCenter`, `Shortcut` | Any number of global shortcuts, plus pausing them and reporting ones another app already has |
 | `Updater` | "Update &lt;App&gt;": reinstalls the latest commit from GitHub, with a progress window |
