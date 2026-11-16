@@ -1,0 +1,82 @@
+import AppKit
+import SwiftUI
+
+/// A titled group of controls in an app's panel (MenuBarAppDelegate.makePanelView).
+///
+///     PanelSection("Displays") { Slider(…) }
+public struct PanelSection<Content: View>: View {
+    private let title: String
+    private let content: Content
+
+    public init(_ title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased()).font(.caption).fontWeight(.semibold).foregroundStyle(.secondary)
+            content
+        }
+    }
+}
+
+/// The popover under the menu bar icon: the app's content above the standard footer.
+@MainActor
+final class Panel {
+    private let popover = NSPopover()
+
+    init() {
+        popover.behavior = .transient
+    }
+
+    /// Opens under `button`, or closes if it's open. The content is built on every open, so it
+    /// always reflects the current state.
+    func toggle(under button: NSView, content: () -> PanelFrame) {
+        guard !popover.isShown else { return popover.performClose(nil) }
+        let controller = NSHostingController(rootView: content())
+        controller.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = controller
+        NSApp.activate() // or a click outside doesn't close it
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        popover.contentViewController?.view.window?.makeKey()
+    }
+
+    func close() { popover.performClose(nil) }
+}
+
+/// The app's panel content above the standard footer: the app's name, Settings, and the menu.
+struct PanelFrame: View {
+    let content: AnyView
+    let needsAccessibility: Bool
+    let showSettings: () -> Void
+    let showMenu: () -> Void
+    @ObservedObject private var status = SystemStatus.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
+                content
+                if needsAccessibility && !status.hasAccessibility {
+                    Button("Grant Accessibility Access…") {
+                        Accessibility.request()
+                        Accessibility.openSettings()
+                    }
+                }
+            }
+            .padding(16)
+            Divider()
+            HStack(spacing: 12) {
+                Text(AppInfo.name).font(.headline)
+                Spacer()
+                Button(action: showSettings) { Image(systemName: "gearshape") }.help("Settings…")
+                Button(action: showMenu) { Image(systemName: "ellipsis.circle") }.help("More")
+            }
+            .buttonStyle(.borderless)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+        }
+        .frame(width: 320)
+        .onAppear { status.refresh() }
+    }
+}

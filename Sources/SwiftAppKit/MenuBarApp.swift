@@ -37,10 +37,15 @@ public enum MenuBarApp {
 ///     Update <App>
 ///     Version 59ba24f · built 2 minutes ago
 ///     Quit <App>               ⌘Q
+///
+/// An app with more controls than a menu holds overrides `makePanelView()`. Its icon then opens a
+/// panel, and the menu moves to a right-click and the panel's footer.
 @MainActor
 open class MenuBarAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     public let updater = Updater()
     public private(set) var statusItem: NSStatusItem!
+    private let menu = NSMenu()
+    private lazy var panel = Panel()
     private lazy var settingsWindow: AppWindow = AppWindow(title: "\(AppInfo.name) Settings") { [unowned self] in
         makeSettingsView()
     }
@@ -57,6 +62,10 @@ open class MenuBarAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// Adds the app's own items to the top of the menu. Called every time the menu opens.
     open func addMenuItems(to menu: NSMenu) {}
 
+    /// The panel the menu bar icon opens instead of the menu, usually a stack of PanelSections.
+    /// Called every time the panel opens. Return nil (the default) to keep the menu.
+    open func makePanelView() -> AnyView? { nil }
+
     /// The Settings window's content, usually a SettingsForm.
     open func makeSettingsView() -> AnyView {
         AnyView(SettingsForm(needsAccessibility: needsAccessibility) {})
@@ -70,6 +79,9 @@ open class MenuBarAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     public func showSettings() { settingsWindow.show() }
 
+    /// Closes the panel, for a panel control that takes over the screen or opens a window.
+    public func closePanel() { panel.close() }
+
     public func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         // The app's own glyph (GLYPH in app.env), else its SF Symbol. As a template image, it follows
@@ -81,11 +93,16 @@ open class MenuBarAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         } ?? NSImage(systemSymbolName: AppInfo.symbol, accessibilityDescription: AppInfo.name)
         image?.isTemplate = true
         statusItem.button?.image = image
-        let menu = NSMenu()
         menu.delegate = self
-        statusItem.menu = menu
 
         start()
+        if makePanelView() == nil {
+            statusItem.menu = menu
+        } else {
+            statusItem.button?.target = self
+            statusItem.button?.action = #selector(statusItemClicked)
+            statusItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        }
         enableLaunchAtLoginOnFirstRun()
 
         // setup.sh relaunches the app with this flag after an update from the menu.
@@ -94,6 +111,31 @@ open class MenuBarAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         if needsAccessibility && !Accessibility.isGranted {
             Accessibility.requestOnce()
+        }
+    }
+
+    @objc private func statusItemClicked() {
+        guard let button = statusItem.button else { return }
+        if NSApp.currentEvent?.type == .rightMouseUp {
+            panel.close()
+            // A status item only places its menu under the icon while the menu is assigned to it.
+            statusItem.menu = menu
+            button.performClick(nil)
+            statusItem.menu = nil
+            return
+        }
+        panel.toggle(under: button) {
+            PanelFrame(
+                content: makePanelView() ?? AnyView(EmptyView()), needsAccessibility: needsAccessibility,
+                showSettings: { [weak self] in
+                    self?.panel.close()
+                    self?.showSettings()
+                },
+                showMenu: { [weak self] in
+                    guard let self else { return }
+                    menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
+                }
+            )
         }
     }
 

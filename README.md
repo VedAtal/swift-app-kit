@@ -14,6 +14,7 @@ The rules the apps follow are in [STANDARDS.md](STANDARDS.md).
 | `scripts/setup.sh` | The whole install: build, app icon, Info.plist, code signing, install, launch, update from GitHub, uninstall |
 | `scripts/make-icon.swift` | The app icon: a white SF Symbol (or the app's `GLYPH`) on a black rounded square |
 | `MenuBarApp`, `MenuBarAppDelegate` | Menu-bar-only startup, the standard menu, Settings window, launch at login on first run, the update flow |
+| `makePanelView()`, `PanelSection` | A panel under the icon instead of the menu, for apps with sliders and switches, with a standard footer |
 | `SettingsForm`, `ShortcutField` | The standard Settings layout (the app's sections, then General) and a shortcut recorder |
 | `HotKeyCenter`, `Shortcut` | Any number of global shortcuts, plus pausing them and reporting ones another app already has |
 | `Updater` | "Update &lt;App&gt;": reinstalls the latest commit from GitHub, with a progress window |

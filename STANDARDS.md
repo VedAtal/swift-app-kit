@@ -33,6 +33,10 @@ Quit <App>               ⌘Q
 - The menu bar icon is the app's `SYMBOL` (or `GLYPH`), drawn as a template image so it matches the
   menu bar.
 - Menu items that have a shortcut show it on the right (`menu.addItem(_:shortcut:action:)`).
+- An app with more controls than a menu holds (sliders, a section per device) gives its icon a
+  **panel** instead (`makePanelView()`): `PanelSection`s above a footer the kit adds, with the app's
+  name, ⚙ for Settings, and ⋯ for the menu. Right-clicking the icon also shows the menu. The app's
+  controls go in the panel, so its menu has only the standard items.
 - Status lines (e.g. "Open history: ⇧⌘V") are disabled items in the app's section.
 - Use title case for commands ("Clear History", "Pause Snap") and "…" for items that open a
   window or ask something more.
