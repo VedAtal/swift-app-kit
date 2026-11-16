@@ -21,6 +21,12 @@ public enum Accessibility {
         request()
     }
 
+    /// Asks for access and opens the place in System Settings to give it.
+    public static func grant() {
+        request()
+        openSettings()
+    }
+
     public static func openSettings() {
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
     }

@@ -37,9 +37,9 @@ Quit <App>               ⌘Q
   **panel** instead (`makePanelView()`): `PanelSection`s above a footer the kit adds, with the app's
   name, ⚙ for Settings, and ⋯ for the menu. Right-clicking the icon also shows the menu. The app's
   controls go in the panel, so its menu has only the standard items.
-- Panel controls use the kit's tile look (`panelTile()`, `.buttonStyle(.panelTile)`). Opening the
-  panel takes focus from the app you were in, so a control that acts on that app (moving its
-  window, pasting) calls `closePanelReturningFocus()` first.
+- Panel controls use the kit's tile look (`panelTile()`, `.buttonStyle(.panelTile)`) and switch row
+  (`PanelToggle`). The panel never takes focus from the app you're in, so a control can act on
+  that app (move its window, paste into it) right away.
 - The menu bar icon is the app's `SYMBOL` (or `GLYPH`), drawn as a template image so it matches the
   menu bar.
 - Menu items that have a shortcut show it on the right (`menu.addItem(_:shortcut:action:)`).

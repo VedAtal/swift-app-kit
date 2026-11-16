@@ -267,7 +267,7 @@ repository_url() {
 # GitHub asks git for credentials only for a private repo. Answer with the token of the gh account
 # named after the repo's owner, else gh's active account (someone the repo is shared with): git's own
 # helper may be signed in as someone else. Apps launched from Finder don't have Homebrew on their
-# PATH, so look there too.
+# PATH, so look there too. install.sh has a copy: change both.
 use_github_credentials() {
   local owner="$1" gh
   gh=$(command -v gh || ls /opt/homebrew/bin/gh /usr/local/bin/gh 2>/dev/null | head -n 1) || true

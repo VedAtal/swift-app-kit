@@ -82,23 +82,6 @@ open class MenuBarAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// Closes the panel, for a panel control that takes over the screen or opens a window.
     public func closePanel() { panel.close() }
 
-    /// Closes the panel and puts the app that was in front before it opened back in front, for a
-    /// panel control that acts on that app (moving its window, pasting into it). Opening the panel
-    /// had to take focus, or a click outside wouldn't close it. Returns once that app is in front,
-    /// or nil if there was none or it isn't within a second.
-    @discardableResult
-    public func closePanelReturningFocus() async -> NSRunningApplication? {
-        panel.close()
-        guard let app = panel.previousApp, app.processIdentifier != getpid() else { return nil }
-        NSApp.yieldActivation(to: app)
-        app.activate()
-        for _ in 0..<50 {
-            if NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier { return app }
-            try? await Task.sleep(for: .milliseconds(20))
-        }
-        return nil
-    }
-
     public func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         // The app's own glyph (GLYPH in app.env), else its SF Symbol. As a template image, it follows
@@ -169,10 +152,7 @@ open class MenuBarAppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if !menu.items.isEmpty { menu.addItem(.separator()) }
 
         if needsAccessibility && !Accessibility.isGranted {
-            menu.addItem("Grant Accessibility Access…") {
-                Accessibility.request()
-                Accessibility.openSettings()
-            }
+            menu.addItem("Grant Accessibility Access…", action: Accessibility.grant)
         }
         menu.addItem("Launch at Login") {
             do {

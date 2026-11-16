@@ -45,10 +45,7 @@ public struct SettingsForm<Content: View>: View {
                         if status.hasAccessibility {
                             Label("Granted", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
                         } else {
-                            Button("Grant Access…") {
-                                Accessibility.request()
-                                Accessibility.openSettings()
-                            }
+                            Button("Grant Access…", action: Accessibility.grant)
                         }
                     }
                 }
