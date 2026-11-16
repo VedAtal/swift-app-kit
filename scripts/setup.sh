@@ -27,7 +27,7 @@ fi
 [[ -f "$CONFIG" ]] || { echo "error: $CONFIG not found." >&2; exit 1; }
 
 # app.env sets these. See templates/app.env.
-APP_NAME="" BUNDLE_ID="" SYMBOL="" INSTALL_NOTES="" GLYPH=""
+APP_NAME="" BUNDLE_ID="" SYMBOL="" INSTALL_NOTES="" GLYPH="" RESOURCES=""
 # shellcheck source=/dev/null
 source "$CONFIG"
 for var in APP_NAME BUNDLE_ID SYMBOL; do
@@ -218,6 +218,7 @@ build_app() {
 
   step "Assembling $APP_NAME.app…"
   [[ -z "$GLYPH" || -f "$ROOT/$GLYPH" ]] || die "app.env sets GLYPH to $GLYPH, but that file isn't in $ROOT."
+  [[ -z "$RESOURCES" || -d "$ROOT/$RESOURCES" ]] || die "app.env sets RESOURCES to $RESOURCES, but that folder isn't in $ROOT."
   mkdir -p "$BUILD_DIR"
   make_icon
   rm -rf "$APP"
@@ -233,6 +234,9 @@ build_app() {
   fi
   if [[ -n "$GLYPH" ]]; then
     cp "$ROOT/$GLYPH" "$APP/Contents/Resources/Glyph.png"
+  fi
+  if [[ -n "$RESOURCES" ]]; then
+    cp -R "$ROOT/$RESOURCES/." "$APP/Contents/Resources/"
   fi
 
   step "Signing…"

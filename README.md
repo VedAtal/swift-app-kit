@@ -12,6 +12,7 @@ The rules the apps follow are in [STANDARDS.md](STANDARDS.md).
 |---|---|
 | `scripts/install.sh` | The one-line install from GitHub (`curl … \| bash -s <app>`): clones the app into a temporary folder and runs its `setup.sh` |
 | `scripts/setup.sh` | The whole install: build, app icon, Info.plist, code signing, install, launch, update from GitHub, uninstall |
+| `RESOURCES` in `app.env` | A folder of the app's own files (images, sounds) copied into `Contents/Resources` |
 | `scripts/make-icon.swift` | The app icon: a white SF Symbol (or the app's `GLYPH`) on a black rounded square |
 | `MenuBarApp`, `MenuBarAppDelegate` | Menu-bar-only startup, the standard menu, Settings window, launch at login on first run, the update flow |
 | `makePanelView()`, `PanelSection` | A panel under the icon instead of the menu, for apps with sliders and switches, with a standard footer |
