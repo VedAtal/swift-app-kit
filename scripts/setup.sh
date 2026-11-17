@@ -124,6 +124,26 @@ ensure_signing_identity() {
   fi
 }
 
+# codesign only uses keychains on the user's search list (--keychain just narrows the search), and
+# some macOS versions hold to that, so the app's keychain joins the list while signing. If signing
+# with the certificate still fails, an ad-hoc signature at least installs the app.
+sign_app() {
+  if [[ "$SIGN_ID" != "-" ]]; then
+    local keychains=() line status=0
+    while IFS= read -r line; do
+      line="${line#*\"}"
+      keychains+=("${line%\"*}")
+    done < <(security list-keychains -d user)
+    security list-keychains -d user -s "${keychains[@]}" "$KEYCHAIN"
+    codesign --force --sign "$SIGN_ID" --keychain "$KEYCHAIN" "$APP" || status=$?
+    security list-keychains -d user -s "${keychains[@]}"
+    (( status != 0 )) || return 0
+    warn "Couldn't sign with the local certificate. Using an ad-hoc signature, so you'll need to re-grant Accessibility after each rebuild."
+    SIGN_ID="-"
+  fi
+  codesign --force --sign - "$APP"
+}
+
 # --- Build ----------------------------------------------------------------------------------
 
 make_icon() {
@@ -241,11 +261,7 @@ build_app() {
 
   step "Signing…"
   ensure_signing_identity
-  if [[ "$SIGN_ID" == "-" ]]; then
-    codesign --force --sign - "$APP"
-  else
-    codesign --force --sign "$SIGN_ID" --keychain "$KEYCHAIN" "$APP"
-  fi
+  sign_app
 }
 
 # --- Install from GitHub --------------------------------------------------------------------
